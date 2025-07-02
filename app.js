@@ -25,7 +25,7 @@ async function fetchAniListData(query, variables) {
 }
 
 async function fetchGeminiData(prompt) {
-     const payload = { 
+     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: {
             responseMimeType: "application/json",
@@ -160,35 +160,72 @@ const DetailPage = {
         const query = `
             query ($id: Int) {
                 Media(id: $id, type: ANIME) {
-                    id title { romaji english }
+                    id
+                    title { romaji english }
                     coverImage { extraLarge }
                     bannerImage
                     description(asHtml: false)
                     genres
                     averageScore
+                    format
+                    status
+                    episodes
+                    duration
+                    season
+                    seasonYear
+                    source(version: 2)
+                    studios(isMain: true) {
+                        nodes {
+                            name
+                        }
+                    }
+                    trailer {
+                        id
+                        site
+                    }
                 }
             }`;
         const data = await fetchAniListData(query, { id: parseInt(params.id) });
         if (data && data.data.Media) {
             const anime = data.data.Media;
             const title = anime.title.english || anime.title.romaji;
-            const description = anime.description ? anime.description.replace(/\n/g, '<br>').replace(/<br><br>/g, '<br>') : 'No description available.';
-            
+            const description = anime.description ? anime.description.replace(/<br\s*\/?>/gi, ' ').substring(0, 400) + '...' : 'No description available.';
+            const mainStudio = anime.studios.nodes.length > 0 ? anime.studios.nodes[0].name : 'N/A';
+            const trailerUrl = anime.trailer && anime.trailer.site === 'youtube' ? `https://www.youtube.com/watch?v=${anime.trailer.id}` : null;
+
+            // Helper to format text
+            const formatText = (text) => text ? text.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A';
+
             appContainer.innerHTML = `
                 <div class="page">
                     <div class="w-full h-48 md:h-64 lg:h-80 rounded-2xl bg-cover bg-center" style="background-image: url('${anime.bannerImage || anime.coverImage.extraLarge}')">
                         <div class="w-full h-full bg-black/60 rounded-2xl"></div>
                     </div>
                     <div class="flex flex-col md:flex-row gap-8 -mt-24 md:-mt-32 px-4 md:px-8">
-                        <div class="w-full md:w-1/3 lg:w-1/4">
+                        <div class="w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
                             <img src="${anime.coverImage.extraLarge}" alt="${title}" class="rounded-xl shadow-2xl w-full aspect-[2/3] object-cover">
+                            ${trailerUrl ? `<a href="${trailerUrl}" target="_blank" rel="noopener noreferrer" class="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.647c1.295.742 1.295 2.545 0 3.286L7.279 20.99c-1.25.717-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd" /></svg>
+                                Watch Trailer
+                            </a>` : ''}
                         </div>
                         <div class="w-full md:w-2/3 lg:w-3/4 pt-4 md:pt-32">
                             <h1 class="text-3xl md:text-5xl font-extrabold text-white">${title}</h1>
                             <div class="flex flex-wrap gap-2 my-4">
                                 ${anime.genres.map(g => `<span class="bg-white/10 text-red-400 text-xs font-semibold px-3 py-1 rounded-full">${g}</span>`).join('')}
                             </div>
-                            <p class="text-neutral-300 text-sm md:text-base leading-relaxed">${description}</p>
+                            <p class="text-neutral-300 text-sm md:text-base leading-relaxed mb-6">${description}</p>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
+                                <div class="bg-white/5 p-3 rounded-lg"><span class="font-bold text-white">Format</span><br>${formatText(anime.format)}</div>
+                                <div class="bg-white/5 p-3 rounded-lg"><span class="font-bold text-white">Status</span><br>${formatText(anime.status)}</div>
+                                <div class="bg-white/5 p-3 rounded-lg"><span class="font-bold text-white">Episodes</span><br>${anime.episodes || 'N/A'}</div>
+                                <div class="bg-white/5 p-3 rounded-lg"><span class="font-bold text-white">Duration</span><br>${anime.duration ? `${anime.duration} min` : 'N/A'}</div>
+                                <div class="bg-white/5 p-3 rounded-lg"><span class="font-bold text-white">Season</span><br>${formatText(anime.season)} ${anime.seasonYear || ''}</div>
+                                <div class="bg-white/5 p-3 rounded-lg"><span class="font-bold text-white">Studio</span><br>${mainStudio}</div>
+                                <div class="bg-white/5 p-3 rounded-lg"><span class="font-bold text-white">Source</span><br>${formatText(anime.source)}</div>
+                                <div class="bg-white/5 p-3 rounded-lg"><span class="font-bold text-white">Score</span><br>${anime.averageScore ? `${anime.averageScore} / 100` : 'N/A'}</div>
+                            </div>
                         </div>
                     </div>
                     <div class="px-4 md:px-8 mt-12">
@@ -207,7 +244,7 @@ const DetailPage = {
                 document.getElementById('ai-rec-btn').classList.add('hidden');
                 document.getElementById('ai-rec-loader').classList.remove('hidden');
                 const resultsContainer = document.getElementById('ai-rec-results');
-                
+
                 const prompt = `I enjoyed the anime "${title}", which is known for its [${anime.genres.join(', ')}] genres. Based on this, recommend 3 other anime that I would likely enjoy. For each recommendation, provide a compelling, one-sentence reason explaining the connection.`;
                 const aiData = await fetchGeminiData(prompt);
 
@@ -261,7 +298,7 @@ const router = async () => {
             result: [location.pathname]
         };
     }
-    
+
     await match.route.view.render(getParams(match));
     window.scrollTo(0, 0);
 };
@@ -282,7 +319,7 @@ document.addEventListener("DOMContentLoaded", () => {
             navigateTo(targetLink.getAttribute('href'));
         }
     });
-    
+
     searchForm.addEventListener('submit', e => {
         e.preventDefault();
         const searchTerm = searchInput.value.trim();
