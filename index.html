@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Universe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="antialiased">
+
+    <header class="glass-header sticky top-0 z-50 py-4">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <a href="/" class="text-3xl font-extrabold tracking-tighter" data-link>
+                    <span class="text-white">Anime</span><span class="text-red-500">Verse</span>
+                </a>
+                <form id="search-form" class="w-full sm:w-auto">
+                    <div class="relative">
+                         <input type="text" id="search-input" placeholder="Search anime..." class="w-full sm:w-72 bg-neutral-800/50 text-white placeholder-neutral-500 border border-neutral-700 rounded-full py-2.5 pl-12 pr-5 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-300">
+                        <svg class="w-5 h-5 text-neutral-500 absolute left-4 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <main id="app" class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- App content will be rendered here by the router -->
+    </main>
+
+    <footer class="mt-16 py-8">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-neutral-500">
+            <p>&copy; 2024 AnimeVerse. All rights reserved.</p>
+            <p class="text-sm mt-1">Data by <a href="https://anilist.co" target="_blank" rel="noopener noreferrer" class="text-red-500 hover:text-red-400 transition">AniList</a>. AI by <a href="#" class="text-red-500 hover:text-red-400 transition">Gemini</a>.</p>
+        </div>
+    </footer>
+
+    <script src="app.js" type="module"></script>
+</body>
+</html>
